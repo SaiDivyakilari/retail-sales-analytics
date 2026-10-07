@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdventureWorksDW2025 — ER Diagram (Star Schemas)</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1100px; margin: 0 auto; padding: 24px; color: #1f2937; background: #fafafa; }
+  h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  .sub { color: #6b7280; margin-bottom: 24px; }
+  section { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+  h2 { font-size: 1.15rem; margin: 0 0 4px; }
+  .grain { color: #6b7280; font-size: 0.9rem; margin-bottom: 12px; }
+  .mermaid { background: #f9fafb; border-radius: 8px; padding: 8px; }
+  .legend { font-size: 0.85rem; color: #6b7280; margin-top: 16px; }
+  .legend b { color: #374151; }
+</style>
+</head>
+<body>
+
+<h1>AdventureWorksDW2025 — ER Diagram</h1>
+<p class="sub">Four star schemas. Read each as: <b>one</b> dimension row → <b>many</b> fact rows, joined on the labeled key. PK = primary key, FK = foreign key.</p>
+
+<section>
+  <h2>1 &middot; Internet Sales (online orders)</h2>
+  <p class="grain">Grain: one row per order line &middot; Measures: OrderQuantity, UnitPrice, SalesAmount, TaxAmt, Freight</p>
+  <div class="mermaid">
+erDiagram
+    DimDate ||--o{ FactInternetSales : "OrderDateKey, DueDateKey, ShipDateKey"
+    DimCustomer ||--o{ FactInternetSales : "CustomerKey"
+    DimProduct ||--o{ FactInternetSales : "ProductKey"
+    DimPromotion ||--o{ FactInternetSales : "PromotionKey"
+    DimCurrency ||--o{ FactInternetSales : "CurrencyKey"
+    DimSalesTerritory ||--o{ FactInternetSales : "SalesTerritoryKey"
+    DimGeography ||--o{ DimCustomer : "GeographyKey"
+    DimProductSubcategory ||--o{ DimProduct : "ProductSubcategoryKey"
+    DimProductCategory ||--o{ DimProductSubcategory : "ProductCategoryKey"
+
+    FactInternetSales {
+        string SalesOrderNumber PK
+        int SalesOrderLineNumber PK
+        int ProductKey FK
+        int OrderDateKey FK
+        int DueDateKey FK
+        int ShipDateKey FK
+        int CustomerKey FK
+        int PromotionKey FK
+        int CurrencyKey FK
+        int SalesTerritoryKey FK
+        int OrderQuantity
+        decimal UnitPrice
+        decimal SalesAmount
+    }
+    DimDate {
+        int DateKey PK
+        date FullDateAlternateKey
+        int CalendarYear
+        int CalendarQuarter
+        int MonthNumberOfYear
+        string EnglishMonthName
+        string EnglishDayNameOfWeek
+    }
+    DimCustomer {
+        int CustomerKey PK
+        int GeographyKey FK
+        string FirstName
+        string LastName
+        decimal YearlyIncome
+        date DateFirstPurchase
+    }
+    DimGeography {
+        int GeographyKey PK
+        string City
+        string StateProvinceName
+        string EnglishCountryRegionName
+    }
+    DimProduct {
+        int ProductKey PK
+        string EnglishProductName
+        string Color
+        decimal ListPrice
+        int ProductSubcategoryKey FK
+        string Status
+    }
+    DimProductSubcategory {
+        int ProductSubcategoryKey PK
+        string EnglishProductSubcategoryName
+        int ProductCategoryKey FK
+    }
+    DimProductCategory {
+        int ProductCategoryKey PK
+        string EnglishProductCategoryName
+    }
+    DimPromotion {
+        int PromotionKey PK
+        string EnglishPromotionName
+        decimal DiscountPct
+    }
+    DimCurrency {
+        int CurrencyKey PK
+        string CurrencyAlternateKey
+    }
+    DimSalesTerritory {
+        int SalesTerritoryKey PK
+        string SalesTerritoryRegion
+        string SalesTerritoryCountry
+        string SalesTerritoryGroup
+    }
+  </div>
+</section>
+
+<section>
+  <h2>2 &middot; Reseller Sales (B2B orders)</h2>
+  <p class="grain">Grain: one row per order line &middot; Measures: OrderQuantity, UnitPrice, SalesAmount &middot; Extra vs internet: DimReseller + DimEmployee (salesperson)</p>
+  <div class="mermaid">
+erDiagram
+    DimDate ||--o{ FactResellerSales : "OrderDateKey, DueDateKey, ShipDateKey"
+    DimReseller ||--o{ FactResellerSales : "ResellerKey"
+    DimEmployee ||--o{ FactResellerSales : "EmployeeKey"
+    DimProduct ||--o{ FactResellerSales : "ProductKey"
+    DimPromotion ||--o{ FactResellerSales : "PromotionKey"
+    DimCurrency ||--o{ FactResellerSales : "CurrencyKey"
+    DimSalesTerritory ||--o{ FactResellerSales : "SalesTerritoryKey"
+    DimSalesTerritory ||--o{ DimEmployee : "SalesTerritoryKey"
+    DimGeography ||--o{ DimReseller : "GeographyKey"
+
+    FactResellerSales {
+        string SalesOrderNumber PK
+        int SalesOrderLineNumber PK
+        int ProductKey FK
+        int OrderDateKey FK
+        int ResellerKey FK
+        int EmployeeKey FK
+        int PromotionKey FK
+        int CurrencyKey FK
+        int SalesTerritoryKey FK
+        int OrderQuantity
+        decimal SalesAmount
+    }
+    DimReseller {
+        int ResellerKey PK
+        string ResellerName
+        int GeographyKey FK
+    }
+    DimEmployee {
+        int EmployeeKey PK
+        string FirstName
+        string LastName
+        string Title
+        int SalesTerritoryKey FK
+    }
+    DimDate {
+        int DateKey PK
+        date FullDateAlternateKey
+        int CalendarYear
+        int CalendarQuarter
+    }
+    DimProduct {
+        int ProductKey PK
+        string EnglishProductName
+    }
+    DimPromotion {
+        int PromotionKey PK
+        decimal DiscountPct
+    }
+    DimCurrency {
+        int CurrencyKey PK
+        string CurrencyAlternateKey
+    }
+    DimSalesTerritory {
+        int SalesTerritoryKey PK
+        string SalesTerritoryRegion
+        string SalesTerritoryCountry
+    }
+    DimGeography {
+        int GeographyKey PK
+        string City
+        string EnglishCountryRegionName
+    }
+  </div>
+</section>
+
+<section>
+  <h2>3 &middot; Sales Quota (targets)</h2>
+  <p class="grain">Grain: one row per salesperson per quarter &middot; Measure: SalesAmountQuota &middot; Powers quota-attainment analytics</p>
+  <div class="mermaid">
+erDiagram
+    DimEmployee ||--o{ FactSalesQuota : "EmployeeKey"
+    DimDate ||--o{ FactSalesQuota : "DateKey (quarter grain)"
+
+    FactSalesQuota {
+        int SalesQuotaKey PK
+        int EmployeeKey FK
+        int DateKey FK
+        decimal SalesAmountQuota
+    }
+    DimEmployee {
+        int EmployeeKey PK
+        string FirstName
+        string LastName
+        string Title
+    }
+    DimDate {
+        int DateKey PK
+        int CalendarYear
+        int CalendarQuarter
+    }
+  </div>
+</section>
+
+<section>
+  <h2>4 &middot; Product Inventory (stock)</h2>
+  <p class="grain">Grain: one row per product per day &middot; Measure: UnitCost, UnitsIn, UnitsOut, UnitsBalance &middot; Powers slow-moving-inventory analysis</p>
+  <div class="mermaid">
+erDiagram
+    DimProduct ||--o{ FactProductInventory : "ProductKey"
+    DimDate ||--o{ FactProductInventory : "DateKey"
+
+    FactProductInventory {
+        int ProductKey PK
+        int DateKey PK
+        decimal UnitCost
+        int UnitsIn
+        int UnitsOut
+        int UnitsBalance
+    }
+    DimProduct {
+        int ProductKey PK
+        string EnglishProductName
+        decimal ListPrice
+    }
+    DimDate {
+        int DateKey PK
+        date FullDateAlternateKey
+    }
+  </div>
+</section>
+
+<p class="legend"><b>Tip:</b> the same dimension tables are reused across stars (conformed dimensions) — e.g. join
+<code>FactInternetSales</code> to <code>DimDate</code> three times with different aliases when you need order date,
+due date, and ship date in one query.</p>
+
+</body>
+</html>
